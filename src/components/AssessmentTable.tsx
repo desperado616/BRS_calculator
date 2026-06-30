@@ -106,11 +106,7 @@ export function AssessmentTable({
                   </button>
                   <button
                     type="button"
-                    onClick={() => {
-                      if (confirm(`Удалить «${assessment.name}»?`)) {
-                        onDelete(assessment.id)
-                      }
-                    }}
+                    onClick={() => onDelete(assessment.id)}
                     className="min-h-0 py-1 text-sm font-medium text-[var(--tg-destructive)]"
                   >
                     Удалить

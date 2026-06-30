@@ -24,11 +24,11 @@ export function buildRatingSummary(
   const preliminaryRating = calculatePreliminaryRating(assessments, bonuses)
   const canSkipExam = canSkipIntermediateAssessment(assessments)
 
-  const gradeRating = finalRating ?? currentRating
-  const gradeInfo = ratingToGradeInfo(gradeRating, disciplineType)
-
   const displayRating =
     finalRating ?? waivedRating ?? currentRating
+
+  const gradeInfo = ratingToGradeInfo(displayRating, disciplineType)
+  const currentGradeInfo = ratingToGradeInfo(currentRating, disciplineType)
 
   return {
     currentRating,
@@ -41,6 +41,8 @@ export function buildRatingSummary(
     displayRating,
     gradeInfo,
     gradeLabel: formatGradeInfo(gradeInfo),
+    currentGradeInfo,
+    currentGradeLabel: formatGradeInfo(currentGradeInfo),
     disciplineType,
   }
 }

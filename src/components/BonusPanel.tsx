@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { calculateBonusRating, formatBonus } from '../calculator'
+import { calculateBonusRating, formatBonus, validateBonusInput } from '../calculator'
 import type { Bonus } from '../types'
 import { createId } from '../utils/id'
 import { parseDecimalInput } from '../utils/number'
@@ -37,6 +37,18 @@ export function BonusPanel({ bonuses, onChange }: BonusPanelProps) {
     }
     if (parsed === null) {
       setError('Введите числовое значение')
+      return
+    }
+
+    const bonusError = validateBonusInput(parsed)
+    if (bonusError) {
+      setError(bonusError)
+      return
+    }
+
+    const nextTotal = rawTotal + parsed
+    if (nextTotal > 15 || nextTotal < -15) {
+      setError('Сумма бонусов должна быть в диапазоне −15 … +15 %')
       return
     }
 

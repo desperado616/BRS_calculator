@@ -29,6 +29,12 @@ function ChevronIcon() {
   )
 }
 
+function progressClass(rating: number, isPassing: boolean): string {
+  if (rating >= 85) return 'progress-fill--pass'
+  if (isPassing) return ''
+  return 'progress-fill--fail'
+}
+
 function SubjectRow({ subject }: { subject: Subject }) {
   const { goSubject } = useNavigation()
   const summary = useMemo(
@@ -43,6 +49,7 @@ function SubjectRow({ subject }: { subject: Subject }) {
 
   const hasAssessments = subject.assessments.length > 0
   const typeLabel = subject.disciplineType === 'credit' ? 'Зачёт' : 'Экзамен'
+  const progressWidth = Math.min(100, Math.max(0, summary.displayRating))
 
   return (
     <li>
@@ -54,6 +61,14 @@ function SubjectRow({ subject }: { subject: Subject }) {
         <div className="min-w-0 flex-1">
           <p className="truncate font-medium tracking-tight">{subject.name}</p>
           <p className="mt-0.5 text-xs text-[var(--tg-hint)]">{typeLabel}</p>
+          {hasAssessments && (
+            <div className="progress-track mt-2.5 max-w-[10rem]">
+              <div
+                className={`progress-fill ${progressClass(summary.displayRating, summary.gradeInfo.isPassing)}`}
+                style={{ width: `${progressWidth}%` }}
+              />
+            </div>
+          )}
         </div>
         <div className="flex shrink-0 items-center gap-2">
           <div className="text-right">
@@ -84,7 +99,7 @@ const MemoSubjectRow = memo(SubjectRow)
 export function SubjectList({ subjects }: SubjectListProps) {
   if (subjects.length === 0) {
     return (
-      <Card className="px-6 py-10 text-center">
+      <Card className="empty-state px-6 py-10 text-center">
         <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-[var(--tg-accent-soft)] text-[var(--tg-accent)]">
           <svg
             width="28"

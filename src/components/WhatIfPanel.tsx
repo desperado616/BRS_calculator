@@ -16,6 +16,7 @@ interface WhatIfPanelProps {
   assessments: Assessment[]
   bonuses: Bonus[]
   disciplineType: DisciplineType
+  embedded?: boolean
 }
 
 type OverrideInputs = Record<string, string>
@@ -55,6 +56,7 @@ export function WhatIfPanel({
   assessments,
   bonuses,
   disciplineType,
+  embedded = false,
 }: WhatIfPanelProps) {
   const [inputs, setInputs] = useState<OverrideInputs>({})
   const [errors, setErrors] = useState<OverrideErrors>({})
@@ -130,21 +132,35 @@ export function WhatIfPanel({
 
   return (
     <section className="space-y-3" aria-live="polite">
-      <SectionHeader
-        title="Что будет если…"
-        description="Введите баллы для одной или нескольких точек. Не сохраняется."
-        action={
-          hasActiveInputs ? (
+      {!embedded ? (
+        <SectionHeader
+          title="Что будет если…"
+          description="Введите баллы для одной или нескольких точек. Не сохраняется."
+          action={
+            hasActiveInputs ? (
+              <button
+                type="button"
+                onClick={handleReset}
+                className="text-link shrink-0 min-h-0 py-1"
+              >
+                Сбросить
+              </button>
+            ) : undefined
+          }
+        />
+      ) : (
+        hasActiveInputs && (
+          <div className="flex justify-end">
             <button
               type="button"
               onClick={handleReset}
-              className="text-link shrink-0 min-h-0 py-1"
+              className="text-link min-h-0 py-1"
             >
               Сбросить
             </button>
-          ) : undefined
-        }
-      />
+          </div>
+        )
+      )}
 
       <ul className="space-y-2">
         {assessments.map((assessment) => {
@@ -231,7 +247,7 @@ export function WhatIfPanel({
           <p
             className={`mt-3 text-center text-sm font-semibold capitalize ${
               ratingToGradeInfo(
-                simulation.finalRating ?? simulation.currentRating,
+                simulation.displayRating,
                 disciplineType,
               ).isPassing
                 ? 'text-[var(--tg-success)]'
@@ -240,7 +256,7 @@ export function WhatIfPanel({
           >
             {formatGradeInfo(
               ratingToGradeInfo(
-                simulation.finalRating ?? simulation.currentRating,
+                simulation.displayRating,
                 disciplineType,
               ),
             )}

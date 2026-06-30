@@ -1,14 +1,20 @@
 {
   "name": "brs-calculator",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.2.0",
+  "description": "Калькулятор балльно-рейтинговой системы ЮУрГУ — Telegram Mini App",
+  "license": "MIT",
   "type": "module",
   "scripts": {
     "dev": "vite --host",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
     "preview": "vite preview --host",
-    "test": "vitest run"
+    "test": "vitest run",
+    "check": "npm run lint && npm test && npm run build"
+  },
+  "engines": {
+    "node": ">=20"
   },
   "dependencies": {
     "dexie": "^4.0.11",

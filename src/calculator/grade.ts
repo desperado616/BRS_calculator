@@ -1,12 +1,6 @@
-import type { DisciplineType } from '../types'
+import type { DisciplineType, GradeInfo } from '../types'
 
-export type { DisciplineType }
-
-export interface GradeInfo {
-  label: string
-  numericGrade?: number
-  isPassing: boolean
-}
+export type { DisciplineType, GradeInfo }
 
 /**
  * Шкала перевода рейтинга (таблица 3 Положения о БРС).

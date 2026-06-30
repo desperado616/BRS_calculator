@@ -24,3 +24,9 @@ export {
 export { simulateCurrentRating, simulateRating } from './simulation'
 export type { ScoreOverrides } from './simulation'
 export { buildRatingSummary } from './summary'
+export {
+  getTargetOptions,
+  planExamTarget,
+  validateBonusInput,
+} from './reverseRating'
+export type { TargetPlanResult } from './reverseRating'

@@ -6,8 +6,8 @@
 
 Telegram Mini App для студентов — считайте рейтинг по официальным формулам и моделируйте «что будет, если…».
 
-[![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white)](https://react.dev/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5+-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=white)](https://react.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-6-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Vite](https://img.shields.io/badge/Vite-8-646CFF?logo=vite&logoColor=white)](https://vite.dev/)
 [![Telegram](https://img.shields.io/badge/Telegram-Mini_App-26A5E4?logo=telegram&logoColor=white)](https://core.telegram.org/bots/webapps)
 
@@ -36,6 +36,18 @@ BRS Calculator — локальный калькулятор рейтинга п
 | **Автопересчёт** | R_тек и R_d обновляются мгновенно |
 | **Оценка до аттестации** | При R_тек ≥ 60 % показывается зачёт или оценка 3 / 4 / 5 |
 | **Что будет если…** | Симуляция баллов для нескольких точек сразу, без сохранения |
+| **Сколько нужно на экзамен?** | Reverse calculator — минимальный балл для цели (3 / 4 / 5 / зачёт) |
+| **Шаблоны предметов** | Готовые наборы контрольных точек (экзамен, физкультура, лаб. курс) |
+| **Визуализация** | Кольцевой gauge R_тек, шкала оценок, анимация count-up |
+| **Обзор семестра** | Сводка: предметы в норме, под угрозой, средний рейтинг |
+| **Поиск** | Фильтрация списка предметов по названию |
+| **Прогресс в списке** | Мини-шкала R_тек у каждого предмета |
+| **Дублирование** | Копия предмета со всеми точками и бонусами |
+| **Сворачиваемые блоки** | «Сколько нужно» и «Что если» — не перегружают экран |
+| **Уведомления** | Toast «Сохранено» и тактильная отдача в Telegram |
+| **Переименование** | Редактирование названия предмета без пересоздания |
+| **Hash-роутинг** | `#/`, `#/new`, `#/subject/:id` — работает back и deep links |
+| **Резервная копия** | Экспорт / импорт всех предметов в JSON |
 | **Тема** | Светлая / тёмная, переключатель в шапке; синхронизация с Telegram |
 
 ---
@@ -99,6 +111,11 @@ R_d = R_тек + R_b
 
 Округление — до ближайшего целого **вверх** (п. 3.3).
 
+**Отображение оценок в приложении:**
+- в списке предметов и сводке — оценка по итоговому `displayRating` (R_d, R_тек+R_b или R_тек);
+- в карточке предмета под R_тек — оценка только по текущему контролю;
+- под блоком R_d — оценка по соответствующему итоговому значению.
+
 ---
 
 ## Примеры расчёта
@@ -140,12 +157,13 @@ R_d   = 62.22 %  (без аттестации, R_тек ≥ 60 %)
 
 ## Стек
 
-- **React 19** + **TypeScript** + **Vite 8**
+- **React 18** + **TypeScript 6** + **Vite 8**
 - **Tailwind CSS 4** — адаптивный UI
 - **@twa-dev/types** — типы Telegram Web App API
 - **Официальный скрипт** `telegram.org/js/telegram-web-app.js`
 - **Dexie.js** — локальное хранение (IndexedDB)
-- **Vitest** — unit-тесты формул
+- **Vitest** + **oxlint** — тесты и линтинг
+- **GitHub Actions** — CI (test, lint, build)
 - **Vercel** — деплой без серверной части
 
 ---
@@ -164,8 +182,9 @@ npm run dev      # http://localhost:5173
 ```bash
 npm run build    # production-сборка
 npm run preview  # http://localhost:4173
-npm test         # 24 unit-теста
+npm test         # 32 unit-теста
 npm run lint     # oxlint
+npm run check    # lint + test + build
 ```
 
 > **Важно:** не открывайте `index.html` или файлы из `dist/` двойным щелчком — приложение работает через dev-сервер или `npm run preview`.
@@ -185,11 +204,14 @@ npm run lint     # oxlint
 ```
 src/
 ├── calculator/       # Вся математика БРС (единственное место с формулами)
-│   └── __tests__/    # Unit-тесты (24 теста)
+│   └── __tests__/    # Unit-тесты
+├── data/             # Шаблоны предметов
 ├── components/       # UI-компоненты (без вычислений)
 ├── pages/            # Экраны: список, предмет, создание
 ├── hooks/            # React-хуки (данные, тема, Telegram)
-├── storage/          # Dexie / IndexedDB
+│   └── useSubjects   # SubjectsProvider — единый источник списка предметов
+├── storage/          # Dexie / IndexedDB, резервное копирование
+│   └── __tests__/    # Тесты импорта/экспорта
 ├── types/            # TypeScript-типы
 └── utils/            # Числа, тема, id
 ```
@@ -213,6 +235,13 @@ subjects: [{
 - Без регистрации и авторизации
 - Без серверной синхронизации
 - Данные сохраняются после закрытия Telegram
+- **Резервная копия:** на главном экране → «Резервная копия» → экспорт JSON; импорт заменяет или дополняет данные
+
+---
+
+## CI
+
+При push и pull request в `main` / `master` запускается GitHub Actions: `npm ci`, `lint`, `test`, `build`.
 
 ---
 
@@ -223,7 +252,7 @@ subjects: [{
 3. **Output Directory:** `dist`
 4. Укажите URL в настройках Telegram Bot → Menu Button / Web App
 
-Файл `vercel.json` настроен для SPA-роутинга (HashRouter).
+Файл `vercel.json` настроен для SPA-роутинга. Навигация в приложении — **HashRouter** (`#/`, `#/new`, `#/subject/:id`).
 
 ---
 
@@ -239,7 +268,7 @@ subjects: [{
 
 ### Белый экран в Telegram
 
-**Главная причина:** Vite добавляет атрибут `crossorigin` к `<script>` и `<link>`. WebView Telegram блокирует такие файлы — JS не загружается, экран остаётся белым. В проекте это исправлено плагином `remove-crossorigin` в `vite.config.ts`.
+**Главная причина:** Vite добавляет атрибут `crossorigin` к `<script>` и `<link>`. WebView Telegram блокирует такие файлы — JS не загружается, экран остаётся белым. В проекте это исправлено плагином `telegramCompatPlugin` в `vite.config.ts`.
 
 Если в браузере работает, а в Telegram — нет:
 

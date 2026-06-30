@@ -293,7 +293,7 @@ describe('grade scale', () => {
 })
 
 describe('simulateRating', () => {
-  it('simulates R_d for one overridden point', () => {
+  it('returns displayRating with waived exam rule when R_тek ≥ 60 %', () => {
     const assessments: Assessment[] = [
       {
         id: '1',
@@ -304,10 +304,10 @@ describe('simulateRating', () => {
         type: 'current',
       },
     ]
-    expect(simulateRating(assessments, [], { '1': 4 })).toBe(48)
+    expect(simulateRating(assessments, [], { '1': 4 })).toBe(80)
   })
 
-  it('simulates R_d for multiple overridden points', () => {
+  it('returns displayRating for multiple overridden points', () => {
     const assessments: Assessment[] = [
       {
         id: '1',
@@ -326,8 +326,7 @@ describe('simulateRating', () => {
         type: 'current',
       },
     ]
-    // (80 + 80) / 2 = 80 current -> 0.6 * 80 = 48
-    expect(simulateRating(assessments, [], { '1': 4, '2': 4 })).toBe(48)
+    expect(simulateRating(assessments, [], { '1': 4, '2': 4 })).toBe(80)
   })
 })
 
@@ -342,7 +341,20 @@ describe('buildRatingSummary', () => {
     expect(summary.preliminaryRating).toBeCloseTo(37.33, 1)
   })
 
-  it('shows удовлетворительно (3) for R_тek 73 % before exam', () => {
+  it('grades from waived rating when penalty drops R_d below passing', () => {
+    const summary = buildRatingSummary(
+      physEdAssessments,
+      [{ id: 'p1', name: 'Штраф', value: -5 }],
+      'credit',
+    )
+
+    expect(summary.currentRating).toBeCloseTo(62.22, 1)
+    expect(summary.displayRating).toBeCloseTo(57.22, 1)
+    expect(summary.currentGradeLabel).toBe('зачтено')
+    expect(summary.gradeLabel).toBe('незачтено')
+  })
+
+  it('shows отлично (5) for R_тek 90 % before exam', () => {
     const highCurrent: Assessment[] = [
       {
         id: '1',

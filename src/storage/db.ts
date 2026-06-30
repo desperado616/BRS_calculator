@@ -78,6 +78,53 @@ export async function createSubject(
   return subject
 }
 
+export async function createSubjectFromData(subject: Subject): Promise<Subject> {
+  const normalized = normalizeSubject(subject)
+  await db.subjects.add(normalized)
+  return normalized
+}
+
+export async function duplicateSubject(id: string): Promise<Subject> {
+  const subject = await db.subjects.get(id)
+  if (!subject) {
+    throw new Error('Предмет не найден')
+  }
+
+  const normalized = normalizeSubject(subject)
+  const copy: Subject = {
+    ...normalized,
+    id: createId(),
+    name: `${normalized.name} (копия)`,
+    assessments: normalized.assessments.map((assessment) => ({
+      ...assessment,
+      id: createId(),
+    })),
+    bonuses: normalized.bonuses.map((bonus) => ({
+      ...bonus,
+      id: createId(),
+    })),
+  }
+
+  await db.subjects.add(copy)
+  return copy
+}
+
+export async function updateSubjectName(id: string, name: string): Promise<Subject> {
+  const trimmed = name.trim()
+  if (!trimmed) {
+    throw new Error('Название предмета не может быть пустым')
+  }
+
+  const subject = await db.subjects.get(id)
+  if (!subject) {
+    throw new Error('Предмет не найден')
+  }
+
+  const updated = normalizeSubject({ ...subject, name: trimmed })
+  await db.subjects.put(updated)
+  return updated
+}
+
 function sanitizeAssessments(assessments: Assessment[]): Assessment[] {
   let intermediateFound = false
 

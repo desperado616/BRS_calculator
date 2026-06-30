@@ -1,12 +1,13 @@
-import type { InputHTMLAttributes } from 'react'
+import { useId, type InputHTMLAttributes } from 'react'
 
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   label: string
   error?: string
 }
 
-export function Input({ label, error, className = '', id, ...props }: InputProps) {
-  const inputId = id ?? props.name
+export function Input({ label, error, className = '', id, name, ...props }: InputProps) {
+  const generatedId = useId()
+  const inputId = id ?? name ?? generatedId
 
   return (
     <label className="block" htmlFor={inputId}>
@@ -15,6 +16,7 @@ export function Input({ label, error, className = '', id, ...props }: InputProps
       </span>
       <input
         id={inputId}
+        name={name}
         className={`w-full min-h-11 rounded-[calc(var(--tg-radius)-0.25rem)] border bg-[var(--tg-bg)] px-4 py-3 text-base text-[var(--tg-text)] outline-none transition-[border-color,box-shadow] duration-150 focus-visible:border-[var(--tg-accent)] focus-visible:ring-2 focus-visible:ring-[var(--tg-accent)]/25 ${
           error
             ? 'border-[var(--tg-destructive)]'
@@ -23,7 +25,7 @@ export function Input({ label, error, className = '', id, ...props }: InputProps
         {...props}
       />
       {error && (
-        <span className="mt-1.5 block text-sm text-[var(--tg-destructive)]">
+        <span className="mt-1.5 block text-sm text-[var(--tg-destructive)]" role="alert">
           {error}
         </span>
       )}

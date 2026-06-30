@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import { getTelegramWebApp } from '../utils/telegram'
+import { getTelegramWebApp, isTelegramVersionAtLeast } from '../utils/telegram'
 import { hasUserThemePreference, updateThemeColorMeta } from '../utils/theme'
 
 function safeTelegramCall(action: () => void) {
@@ -85,7 +85,7 @@ export function useTelegramBackButton(
 
   useEffect(() => {
     const WebApp = getTelegramWebApp()
-    if (!WebApp?.BackButton) return
+    if (!WebApp?.BackButton || !isTelegramVersionAtLeast('6.1')) return
 
     const handler = () => onClickRef.current()
     const backButton = WebApp.BackButton

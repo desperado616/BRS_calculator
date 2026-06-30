@@ -25,53 +25,37 @@ export class ErrorBoundary extends Component<Props, State> {
     }
   }
 
+  private handleRetry = () => {
+    this.setState({ error: null })
+  }
+
   render() {
     if (this.state.error) {
       return (
-        <div
-          style={{
-            minHeight: '100vh',
-            padding: '24px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            background: '#f8f9fb',
-            color: '#0f1419',
-            fontFamily:
-              '-apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif',
-          }}
-        >
-          <div style={{ maxWidth: '320px', textAlign: 'center' }}>
-            <h1 style={{ fontSize: '18px', fontWeight: 600, margin: '0 0 12px' }}>
+        <div className="error-boundary flex min-h-screen items-center justify-center bg-[var(--tg-bg)] p-6 text-[var(--tg-text)]">
+          <div className="max-w-xs text-center">
+            <h1 className="mb-3 text-lg font-semibold">
               Не удалось загрузить приложение
             </h1>
-            <p
-              style={{
-                fontSize: '14px',
-                lineHeight: 1.5,
-                color: '#6b7280',
-                margin: '0 0 20px',
-                wordBreak: 'break-word',
-              }}
-            >
+            <p className="mb-5 break-words text-sm leading-relaxed text-[var(--tg-hint)]">
               {this.state.error.message}
             </p>
-            <button
-              type="button"
-              onClick={() => window.location.reload()}
-              style={{
-                minHeight: '44px',
-                padding: '12px 20px',
-                border: 'none',
-                borderRadius: '12px',
-                background: '#2563eb',
-                color: '#fff',
-                fontSize: '15px',
-                fontWeight: 500,
-              }}
-            >
-              Обновить
-            </button>
+            <div className="flex flex-col gap-2">
+              <button
+                type="button"
+                onClick={this.handleRetry}
+                className="min-h-11 rounded-xl bg-[var(--tg-button)] px-5 py-3 text-[0.9375rem] font-medium text-[var(--tg-button-text)]"
+              >
+                Попробовать снова
+              </button>
+              <button
+                type="button"
+                onClick={() => window.location.reload()}
+                className="min-h-11 rounded-xl border border-[var(--tg-separator)] px-5 py-3 text-[0.9375rem] font-medium"
+              >
+                Обновить страницу
+              </button>
+            </div>
           </div>
         </div>
       )

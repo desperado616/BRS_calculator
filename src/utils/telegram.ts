@@ -8,3 +8,9 @@ export function getTelegramWebApp(): WebApp | null {
 export function isTelegramEnvironment(): boolean {
   return getTelegramWebApp() !== null
 }
+
+export function isTelegramVersionAtLeast(version: string): boolean {
+  const WebApp = getTelegramWebApp()
+  if (!WebApp || typeof WebApp.isVersionAtLeast !== 'function') return false
+  return WebApp.isVersionAtLeast(version)
+}

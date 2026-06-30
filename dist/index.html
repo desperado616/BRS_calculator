@@ -7,6 +7,10 @@
       content="width=device-width, initial-scale=1.0, viewport-fit=cover"
     />
     <meta name="theme-color" content="#f8f9fb" />
+    <meta
+      name="description"
+      content="Калькулятор балльно-рейтинговой системы ЮУрГУ — считайте рейтинг, моделируйте баллы и планируйте аттестацию."
+    />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
@@ -104,7 +108,10 @@
           var messageEl = document.getElementById('boot-error-message')
           if (status) status.style.display = 'none'
           if (messageEl) messageEl.textContent = message || 'Неизвестная ошибка'
-          if (error) error.className = 'visible'
+          if (error) {
+            error.className = 'visible'
+            error.setAttribute('aria-hidden', 'false')
+          }
 
           try {
             if (
@@ -169,13 +176,13 @@
         }, 15000)
       })()
     </script>
-              <link rel="stylesheet" href="/assets/app-DYsNfkcG.css">
+              <link rel="stylesheet" href="/assets/app-CiYjLzDk.css">
   </head>
   <body>
     <div id="root">
-      <div id="boot-status">Загрузка… v1.0.3</div>
+      <div id="boot-status">Загрузка…</div>
     </div>
-    <div id="boot-error">
+    <div id="boot-error" aria-hidden="true">
       <div id="boot-error-inner">
         <p id="boot-error-title">Не удалось загрузить приложение</p>
         <p id="boot-error-message"></p>
@@ -183,6 +190,6 @@
       </div>
     </div>
     <script src="/telegram-web-app.js" onerror="void 0"></script>
-      <script src="/assets/app-I_uixqoV.js" onerror="window.__brsShowBootError && window.__brsShowBootError('Не удалось загрузить ' + this.src)"></script>
+      <script src="/assets/app-BIFEbHl0.js" onerror="window.__brsShowBootError && window.__brsShowBootError('Не удалось загрузить ' + this.src)"></script>
   </body>
 </html>

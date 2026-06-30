@@ -39,8 +39,13 @@ export interface RatingSummary {
   waivedRating: number | null
   preliminaryRating: number
   canSkipExam: boolean
+  /** Итоговый рейтинг для списка: R_d | R_тек+R_b | R_тек */
   displayRating: number
+  /** Оценка по displayRating (список, сводка, R_d) */
   gradeInfo: GradeInfo
   gradeLabel: string
+  /** Оценка только по R_тек (блок текущего контроля) */
+  currentGradeInfo: GradeInfo
+  currentGradeLabel: string
   disciplineType: DisciplineType
 }
