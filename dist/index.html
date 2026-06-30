@@ -91,6 +91,7 @@
         }
 
         window.__brsShowBootError = showBootError
+        window.__brsAppMounted = false
 
         window.addEventListener(
           'error',
@@ -125,16 +126,24 @@
         } catch (e) {
           console.warn('[Telegram WebApp]', e)
         }
+
+        setTimeout(function () {
+          if (!window.__brsAppMounted) {
+            showBootError(
+              'Приложение не запустилось. Обновите Telegram до последней версии и попробуйте снова.',
+            )
+          }
+        }, 12000)
       })()
     </script>
-    <script type="module" src="./assets/index-BC6qAbTt.js"></script>
-    <link rel="stylesheet" href="./assets/index-VIrOZcCX.css">
+    <script defer src="./assets/app.js"></script>
+    <link rel="stylesheet" href="./assets/app.css">
   </head>
   <body>
     <div id="root">
       <div id="boot-status">Загрузка…</div>
     </div>
-    <div id="boot-error" class="">
+    <div id="boot-error">
       <div id="boot-error-inner">
         <p id="boot-error-title">Не удалось загрузить приложение</p>
         <p id="boot-error-message"></p>

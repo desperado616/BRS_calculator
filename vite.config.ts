@@ -2,27 +2,43 @@ import { defineConfig, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 
-/** WebView Telegram блокирует module/script с crossorigin → белый экран */
-function removeCrossoriginPlugin(): Plugin {
+/** WebView Telegram: crossorigin и ES modules часто ломают загрузку */
+function telegramCompatPlugin(): Plugin {
   return {
-    name: 'remove-crossorigin',
+    name: 'telegram-compat',
     transformIndexHtml: {
       order: 'post',
       handler(html) {
-        return html.replace(/\s+crossorigin(="[^"]*")?/gi, '')
+        return html
+          .replace(/\s+crossorigin(="[^"]*")?/gi, '')
+          .replace(/\stype="module"/g, '')
+          .replace(
+            /<script src="\.\/assets\/app\.js"><\/script>/,
+            '<script defer src="./assets/app.js"></script>',
+          )
       },
     },
   }
 }
 
 export default defineConfig({
-  plugins: [react(), tailwindcss(), removeCrossoriginPlugin()],
+  plugins: [react(), tailwindcss(), telegramCompatPlugin()],
   base: './',
   build: {
     target: 'es2015',
     cssTarget: 'chrome61',
+    cssCodeSplit: false,
     modulePreload: {
       polyfill: false,
+    },
+    rollupOptions: {
+      output: {
+        format: 'iife',
+        inlineDynamicImports: true,
+        entryFileNames: 'assets/app.js',
+        assetFileNames: 'assets/app.[ext]',
+        name: 'BrsCalculator',
+      },
     },
   },
   server: {

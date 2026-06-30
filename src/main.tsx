@@ -8,6 +8,7 @@ import './index.css'
 declare global {
   interface Window {
     __brsShowBootError?: (message: string) => void
+    __brsAppMounted?: boolean
   }
 }
 
@@ -43,6 +44,9 @@ function mountApp() {
   applyThemeToDocument(getInitialTheme())
   hideBootStatus()
 
+  const bootError = document.getElementById('boot-error')
+  if (bootError) bootError.remove()
+
   createRoot(rootElement).render(
     <StrictMode>
       <ErrorBoundary>
@@ -50,11 +54,22 @@ function mountApp() {
       </ErrorBoundary>
     </StrictMode>,
   )
+
+  window.__brsAppMounted = true
 }
 
-try {
-  mountApp()
-} catch (error) {
-  console.error(error)
-  showBootstrapError(error)
+function boot() {
+  try {
+    mountApp()
+  } catch (error) {
+    console.error(error)
+    showBootstrapError(error)
+  }
+}
+
+// Vite вставляет скрипт в <head> — DOM ещё не готов без defer
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', boot)
+} else {
+  boot()
 }
