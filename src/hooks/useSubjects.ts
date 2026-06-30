@@ -1,23 +1,65 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import {
+  createContext,
+  createElement,
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from 'react'
 import type { Assessment, Bonus, DisciplineType, Subject } from '../types'
 import {
   createSubject,
+  createSubjectFromData,
   deleteSubject,
+  duplicateSubject,
   getAllSubjects,
   getSubject,
   saveSubject,
+  updateSubjectName,
 } from '../storage/db'
 
-export function useSubjects() {
+export interface SubjectsContextValue {
+  subjects: Subject[]
+  loading: boolean
+  loadError: string | null
+  refresh: () => Promise<void>
+  addSubject: (name: string, disciplineType?: DisciplineType) => Promise<Subject>
+  addSubjectFromTemplate: (subject: Subject) => Promise<Subject>
+  removeSubject: (id: string) => Promise<void>
+  copySubject: (id: string) => Promise<Subject>
+}
+
+export interface SubjectContextValue {
+  subject: Subject | null
+  loading: boolean
+  saving: boolean
+  saveError: string | null
+  refresh: () => Promise<void>
+  updateAssessments: (
+    updater: (assessments: Assessment[]) => Assessment[],
+  ) => Promise<void>
+  updateBonuses: (updater: (bonuses: Bonus[]) => Bonus[]) => Promise<void>
+  updateDisciplineType: (disciplineType: DisciplineType) => Promise<void>
+  updateName: (name: string) => Promise<void>
+}
+
+const SubjectsContext = createContext<SubjectsContextValue | null>(null)
+
+function useSubjectsState(): SubjectsContextValue {
   const [subjects, setSubjects] = useState<Subject[]>([])
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState<string | null>(null)
 
   const refresh = useCallback(async () => {
+    setLoadError(null)
     try {
       const data = await getAllSubjects()
       setSubjects(data)
     } catch (error) {
       console.error('[storage]', error)
+      setLoadError('Не удалось загрузить предметы')
     } finally {
       setLoading(false)
     }
@@ -36,6 +78,15 @@ export function useSubjects() {
     [refresh],
   )
 
+  const addSubjectFromTemplate = useCallback(
+    async (subject: Subject) => {
+      const created = await createSubjectFromData(subject)
+      await refresh()
+      return created
+    },
+    [refresh],
+  )
+
   const removeSubject = useCallback(
     async (id: string) => {
       await deleteSubject(id)
@@ -44,16 +95,49 @@ export function useSubjects() {
     [refresh],
   )
 
-  return { subjects, loading, refresh, addSubject, removeSubject }
+  const copySubject = useCallback(
+    async (id: string) => {
+      const copy = await duplicateSubject(id)
+      await refresh()
+      return copy
+    },
+    [refresh],
+  )
+
+  return {
+    subjects,
+    loading,
+    loadError,
+    refresh,
+    addSubject,
+    addSubjectFromTemplate,
+    removeSubject,
+    copySubject,
+  }
 }
 
-export function useSubject(subjectId: string | undefined) {
+export function SubjectsProvider({ children }: { children: ReactNode }) {
+  const value = useSubjectsState()
+  return createElement(SubjectsContext.Provider, { value }, children)
+}
+
+export function useSubjects(): SubjectsContextValue {
+  const context = useContext(SubjectsContext)
+  if (!context) {
+    throw new Error('useSubjects must be used within SubjectsProvider')
+  }
+  return context
+}
+
+export function useSubject(subjectId: string | undefined): SubjectContextValue {
   const [subject, setSubject] = useState<Subject | null>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
   const subjectRef = useRef<Subject | null>(null)
   const requestIdRef = useRef(0)
+  const saveChainRef = useRef<Promise<void>>(Promise.resolve())
+  const savesInFlightRef = useRef(0)
 
   useEffect(() => {
     subjectRef.current = subject
@@ -92,6 +176,41 @@ export function useSubject(subjectId: string | undefined) {
     void refresh()
   }, [refresh])
 
+  const enqueueSave = useCallback(
+    async (updated: Subject, previous: Subject) => {
+      subjectRef.current = updated
+      setSubject(updated)
+      savesInFlightRef.current += 1
+      setSaving(true)
+      setSaveError(null)
+
+      const task = saveChainRef.current.then(async () => {
+        const latest = subjectRef.current
+        if (!latest) return
+        await saveSubject(latest)
+      })
+
+      saveChainRef.current = task.catch(() => undefined)
+
+      try {
+        await task
+      } catch {
+        if (subjectRef.current === updated) {
+          subjectRef.current = previous
+          setSubject(previous)
+          setSaveError('Не удалось сохранить изменения')
+        }
+        throw new Error('save failed')
+      } finally {
+        savesInFlightRef.current -= 1
+        if (savesInFlightRef.current === 0) {
+          setSaving(false)
+        }
+      }
+    },
+    [],
+  )
+
   const patchSubject = useCallback(
     async (patch: (current: Subject) => Subject) => {
       const current = subjectRef.current
@@ -99,22 +218,9 @@ export function useSubject(subjectId: string | undefined) {
 
       const previous = current
       const updated = patch(current)
-      subjectRef.current = updated
-      setSubject(updated)
-      setSaving(true)
-      setSaveError(null)
-
-      try {
-        await saveSubject(updated)
-      } catch {
-        subjectRef.current = previous
-        setSubject(previous)
-        setSaveError('Не удалось сохранить изменения')
-      } finally {
-        setSaving(false)
-      }
+      await enqueueSave(updated, previous)
     },
-    [],
+    [enqueueSave],
   )
 
   const updateAssessments = useCallback(
@@ -144,6 +250,46 @@ export function useSubject(subjectId: string | undefined) {
     [patchSubject],
   )
 
+  const updateName = useCallback(
+    async (name: string) => {
+      const current = subjectRef.current
+      if (!current) return
+
+      const previous = current
+      const trimmed = name.trim()
+      const optimistic = { ...current, name: trimmed }
+
+      subjectRef.current = optimistic
+      setSubject(optimistic)
+      savesInFlightRef.current += 1
+      setSaving(true)
+      setSaveError(null)
+
+      const task = saveChainRef.current.then(async () => {
+        const saved = await updateSubjectName(current.id, trimmed)
+        subjectRef.current = saved
+        setSubject(saved)
+      })
+
+      saveChainRef.current = task.catch(() => undefined)
+
+      try {
+        await task
+      } catch {
+        subjectRef.current = previous
+        setSubject(previous)
+        setSaveError('Не удалось сохранить название')
+        throw new Error('rename failed')
+      } finally {
+        savesInFlightRef.current -= 1
+        if (savesInFlightRef.current === 0) {
+          setSaving(false)
+        }
+      }
+    },
+    [],
+  )
+
   return {
     subject,
     loading,
@@ -153,5 +299,6 @@ export function useSubject(subjectId: string | undefined) {
     updateAssessments,
     updateBonuses,
     updateDisciplineType,
+    updateName,
   }
 }
