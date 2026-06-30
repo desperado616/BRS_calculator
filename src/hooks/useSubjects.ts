@@ -13,9 +13,14 @@ export function useSubjects() {
   const [loading, setLoading] = useState(true)
 
   const refresh = useCallback(async () => {
-    const data = await getAllSubjects()
-    setSubjects(data)
-    setLoading(false)
+    try {
+      const data = await getAllSubjects()
+      setSubjects(data)
+    } catch (error) {
+      console.error('[storage]', error)
+    } finally {
+      setLoading(false)
+    }
   }, [])
 
   useEffect(() => {
@@ -65,12 +70,22 @@ export function useSubject(subjectId: string | undefined) {
     const requestId = ++requestIdRef.current
     setLoading(true)
 
-    const data = await getSubject(subjectId)
-    if (requestId !== requestIdRef.current) return
+    try {
+      const data = await getSubject(subjectId)
+      if (requestId !== requestIdRef.current) return
 
-    setSubject(data ?? null)
-    subjectRef.current = data ?? null
-    setLoading(false)
+      setSubject(data ?? null)
+      subjectRef.current = data ?? null
+    } catch (error) {
+      console.error('[storage]', error)
+      if (requestId !== requestIdRef.current) return
+      setSubject(null)
+      subjectRef.current = null
+    } finally {
+      if (requestId === requestIdRef.current) {
+        setLoading(false)
+      }
+    }
   }, [subjectId])
 
   useEffect(() => {

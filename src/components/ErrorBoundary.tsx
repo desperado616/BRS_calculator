@@ -21,7 +21,7 @@ export class ErrorBoundary extends Component<Props, State> {
   render() {
     if (this.state.error) {
       return (
-        <div className="flex min-h-[100dvh] items-center justify-center bg-[var(--tg-bg)] p-6">
+        <div className="flex min-h-screen min-h-[100dvh] items-center justify-center bg-[var(--tg-bg)] p-6">
           <Card className="max-w-sm px-6 py-8 text-center">
             <h1 className="text-lg font-semibold tracking-tight">
               Не удалось загрузить приложение

@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import WebApp from '@twa-dev/sdk'
+import { getTelegramWebApp } from '../utils/telegram'
 import { hasUserThemePreference, updateThemeColorMeta } from '../utils/theme'
 
 function safeTelegramCall(action: () => void) {
@@ -12,6 +12,9 @@ function safeTelegramCall(action: () => void) {
 
 function applyTelegramTheme() {
   if (hasUserThemePreference()) return
+
+  const WebApp = getTelegramWebApp()
+  if (!WebApp) return
 
   safeTelegramCall(() => {
     const { themeParams, colorScheme } = WebApp
@@ -50,6 +53,9 @@ function applyTelegramTheme() {
 
 export function useTelegram() {
   useEffect(() => {
+    const WebApp = getTelegramWebApp()
+    if (!WebApp) return
+
     safeTelegramCall(() => {
       WebApp.ready()
       WebApp.expand()
@@ -78,24 +84,25 @@ export function useTelegramBackButton(
   onClickRef.current = onClick
 
   useEffect(() => {
+    const WebApp = getTelegramWebApp()
+    if (!WebApp?.BackButton) return
+
     const handler = () => onClickRef.current()
+    const backButton = WebApp.BackButton
 
     safeTelegramCall(() => {
-      if (!WebApp.BackButton) return
-
       if (visible) {
-        WebApp.BackButton.show()
-        WebApp.BackButton.onClick(handler)
+        backButton.show()
+        backButton.onClick(handler)
       } else {
-        WebApp.BackButton.hide()
+        backButton.hide()
       }
     })
 
     return () => {
       safeTelegramCall(() => {
-        if (!WebApp.BackButton) return
-        WebApp.BackButton.offClick(handler)
-        WebApp.BackButton.hide()
+        backButton.offClick(handler)
+        backButton.hide()
       })
     }
   }, [visible])

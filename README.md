@@ -142,7 +142,8 @@ R_d   = 62.22 %  (без аттестации, R_тек ≥ 60 %)
 
 - **React 19** + **TypeScript** + **Vite 8**
 - **Tailwind CSS 4** — адаптивный UI
-- **@twa-dev/sdk** — Telegram Mini Apps
+- **@twa-dev/types** — типы Telegram Web App API
+- **Официальный скрипт** `telegram.org/js/telegram-web-app.js`
 - **Dexie.js** — локальное хранение (IndexedDB)
 - **Vitest** — unit-тесты формул
 - **Vercel** — деплой без серверной части
@@ -229,10 +230,22 @@ subjects: [{
 ## Telegram Mini App
 
 1. Создайте бота через [@BotFather](https://t.me/BotFather)
-2. Настройте Web App URL на ваш деплой
+2. Настройте Web App URL на ваш деплой (**обязательно HTTPS**)
 3. Откройте приложение через кнопку меню бота
 
 Приложение подстраивается под тему Telegram. Ручной переключатель темы в шапке сохраняет выбор пользователя.
+
+В `index.html` подключён официальный скрипт `telegram-web-app.js` — это нужно для корректной работы внутри Telegram WebView.
+
+### Белый экран в Telegram
+
+Если в браузере всё работает, а в Telegram — белый экран:
+
+1. **Пересоберите и задеплойте** последнюю версию (`npm run build`)
+2. Убедитесь, что URL в BotFather указывает на **корень** деплоя (например `https://your-app.vercel.app/`)
+3. URL должен быть **HTTPS**, не HTTP
+4. Не открывайте `index.html` локально — только через хостинг
+5. После деплоя полностью закройте Mini App и откройте заново (кэш Telegram)
 
 ---
 
