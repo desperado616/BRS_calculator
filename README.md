@@ -270,6 +270,7 @@ subjects: [{
 | Ошибка в логе | Решение |
 | ------------- | ------- |
 | `'tsc' / 'vite' is not recognized` | Redeploy после push с актуальным `vercel.json`; проверьте, что `NODE_ENV` не блокирует devDeps |
+| `'npm ci' … not in sync` / `Missing: @emnapi/core` | Закоммитьте актуальный `package-lock.json` (`npm install` локально → push) |
 | `Could not resolve "./src/main.tsx"` | Убедитесь, что деплоится последний commit (не старый кэш) |
 | Белый экран в Telegram | Свежий deploy + полностью закройте Mini App (см. ниже) |
 
