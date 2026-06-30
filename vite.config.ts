@@ -2,20 +2,39 @@ import { defineConfig, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 
-/** WebView Telegram: crossorigin и ES modules часто ломают загрузку */
+/** Совместимость с WebView Telegram: IIFE, без module/crossorigin, статический script */
 function telegramCompatPlugin(): Plugin {
   return {
     name: 'telegram-compat',
     transformIndexHtml: {
       order: 'post',
       handler(html) {
-        return html
+        const scriptMatch = html.match(
+          /<script[^>]+src="(\.\/assets\/[^"]+\.js)"[^>]*><\/script>/,
+        )
+        const cssMatch = html.match(
+          /<link[^>]+href="(\.\/assets\/[^"]+\.css)"[^>]*>/,
+        )
+
+        const jsPath = scriptMatch?.[1] ?? './assets/app.js'
+        const cssPath = cssMatch?.[1] ?? './assets/app.css'
+
+        let result = html
           .replace(/\s+crossorigin(="[^"]*")?/gi, '')
           .replace(/\stype="module"/g, '')
-          .replace(
-            /<script src="\.\/assets\/app\.js"><\/script>/,
-            '<script defer src="./assets/app.js"></script>',
-          )
+          .replace(/<script[^>]+src="\.\/assets\/[^"]+\.js"[^>]*><\/script>\n?/g, '')
+          .replace(/<link[^>]+href="\.\/assets\/[^"]+\.css"[^>]*>\n?/g, '')
+          .replace(/<script[^>]+src="\/src\/main\.tsx"[^>]*><\/script>\n?/g, '')
+
+        result = result.replace(
+          '</head>',
+          `    <link rel="stylesheet" href="${cssPath}">\n  </head>`,
+        )
+        result = result.replace(
+          '</body>',
+          `    <script src="${jsPath}" onerror="window.__brsShowBootError && window.__brsShowBootError('Не удалось загрузить приложение')"></script>\n  </body>`,
+        )
+        return result
       },
     },
   }
@@ -35,8 +54,8 @@ export default defineConfig({
       output: {
         format: 'iife',
         inlineDynamicImports: true,
-        entryFileNames: 'assets/app.js',
-        assetFileNames: 'assets/app.[ext]',
+        entryFileNames: 'assets/app-[hash].js',
+        assetFileNames: 'assets/app-[hash].[ext]',
         name: 'BrsCalculator',
       },
     },

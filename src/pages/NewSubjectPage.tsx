@@ -1,23 +1,23 @@
 import { useCallback, useState, type FormEvent } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { DisciplineTypeSelector } from '../components/DisciplineTypeSelector'
 import { Button } from '../components/Button'
 import { Input } from '../components/Input'
 import { Layout } from '../components/Layout'
 import { useSubjects } from '../hooks/useSubjects'
 import { useTelegramBackButton } from '../hooks/useTelegram'
+import { useNavigation } from '../navigation/AppNavigation'
 
 import type { DisciplineType } from '../types'
 
 export function NewSubjectPage() {
-  const navigate = useNavigate()
+  const { goHome, goSubject } = useNavigation()
   const { addSubject } = useSubjects()
   const [name, setName] = useState('')
   const [disciplineType, setDisciplineType] = useState<DisciplineType>('exam')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
-  const goBack = useCallback(() => navigate('/'), [navigate])
+  const goBack = useCallback(() => goHome(), [goHome])
   useTelegramBackButton(true, goBack)
 
   const handleSubmit = async (event: FormEvent) => {
@@ -29,7 +29,7 @@ export function NewSubjectPage() {
 
     try {
       const subject = await addSubject(name, disciplineType)
-      navigate(`/subjects/${subject.id}`)
+      goSubject(subject.id)
     } catch {
       setError('Не удалось создать предмет')
       setSaving(false)

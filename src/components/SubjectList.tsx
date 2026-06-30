@@ -1,6 +1,6 @@
 import { memo, useMemo } from 'react'
-import { Link } from 'react-router-dom'
 import { buildRatingSummary, formatPercent } from '../calculator'
+import { useNavigation } from '../navigation/AppNavigation'
 import type { Subject } from '../types'
 import { Card } from './Card'
 
@@ -30,6 +30,7 @@ function ChevronIcon() {
 }
 
 function SubjectRow({ subject }: { subject: Subject }) {
+  const { goSubject } = useNavigation()
   const summary = useMemo(
     () =>
       buildRatingSummary(
@@ -45,9 +46,10 @@ function SubjectRow({ subject }: { subject: Subject }) {
 
   return (
     <li>
-      <Link
-        to={`/subjects/${subject.id}`}
-        className="nav-link flex min-h-[3.25rem] items-center gap-3 px-4 py-3.5 transition-colors active:bg-[var(--tg-bg)]"
+      <button
+        type="button"
+        onClick={() => goSubject(subject.id)}
+        className="nav-link flex min-h-[3.25rem] w-full items-center gap-3 px-4 py-3.5 text-left transition-colors active:bg-[var(--tg-bg)]"
       >
         <div className="min-w-0 flex-1">
           <p className="truncate font-medium tracking-tight">{subject.name}</p>
@@ -72,7 +74,7 @@ function SubjectRow({ subject }: { subject: Subject }) {
           </div>
           <ChevronIcon />
         </div>
-      </Link>
+      </button>
     </li>
   )
 }

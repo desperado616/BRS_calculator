@@ -1,5 +1,4 @@
 import { useCallback, useMemo, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
 import { buildRatingSummary } from '../calculator'
 import { AssessmentForm } from '../components/AssessmentForm'
 import { AssessmentTable } from '../components/AssessmentTable'
@@ -13,22 +12,26 @@ import { RatingDisplay } from '../components/RatingDisplay'
 import { WhatIfPanel } from '../components/WhatIfPanel'
 import { useSubject } from '../hooks/useSubjects'
 import { useTelegramBackButton } from '../hooks/useTelegram'
+import { useNavigation } from '../navigation/AppNavigation'
 import { deleteSubject } from '../storage/db'
 import type { Assessment, Bonus } from '../types'
 
 type FormMode = 'closed' | 'add' | 'edit'
 
-export function SubjectPage() {
-  const { id } = useParams<{ id: string }>()
-  const navigate = useNavigate()
+interface SubjectPageProps {
+  subjectId: string
+}
+
+export function SubjectPage({ subjectId }: SubjectPageProps) {
+  const { goHome } = useNavigation()
   const { subject, loading, saving, saveError, updateAssessments, updateBonuses, updateDisciplineType } =
-    useSubject(id)
+    useSubject(subjectId)
   const [formMode, setFormMode] = useState<FormMode>('closed')
   const [editingAssessment, setEditingAssessment] = useState<
     Assessment | undefined
   >()
 
-  const goBack = useCallback(() => navigate('/'), [navigate])
+  const goBack = useCallback(() => goHome(), [goHome])
   useTelegramBackButton(true, goBack)
 
   const summary = useMemo(
@@ -83,8 +86,8 @@ export function SubjectPage() {
     if (!subject) return
     if (!confirm(`Удалить предмет «${subject.name}»?`)) return
     await deleteSubject(subject.id)
-    navigate('/')
-  }, [subject, navigate])
+    goHome()
+  }, [subject, goHome])
 
   if (loading) {
     return (
@@ -99,7 +102,7 @@ export function SubjectPage() {
       <Layout>
         <p className="text-center text-[var(--tg-hint)]">Предмет не найден</p>
         <div className="mt-4">
-          <Button variant="secondary" onClick={() => navigate('/')}>
+          <Button variant="secondary" onClick={goHome}>
             На главную
           </Button>
         </div>

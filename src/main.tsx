@@ -1,4 +1,4 @@
-import { StrictMode } from 'react'
+import 'core-js/stable'
 import { createRoot } from 'react-dom/client'
 import { App } from './App'
 import { ErrorBoundary } from './components/ErrorBoundary'
@@ -28,7 +28,7 @@ function showBootstrapError(error: unknown) {
   const root = document.getElementById('root')
   if (!root) return
   root.innerHTML =
-    '<div style="padding:24px;text-align:center;font-family:sans-serif">' +
+    '<div style="padding:24px;text-align:center;font-family:sans-serif;color:#0f1419">' +
     '<p style="font-weight:600">Не удалось запустить приложение</p>' +
     '<p style="color:#6b7280;font-size:14px">' +
     message +
@@ -48,11 +48,9 @@ function mountApp() {
   if (bootError) bootError.remove()
 
   createRoot(rootElement).render(
-    <StrictMode>
-      <ErrorBoundary>
-        <App />
-      </ErrorBoundary>
-    </StrictMode>,
+    <ErrorBoundary>
+      <App />
+    </ErrorBoundary>,
   )
 
   window.__brsAppMounted = true
@@ -67,7 +65,6 @@ function boot() {
   }
 }
 
-// Vite вставляет скрипт в <head> — DOM ещё не готов без defer
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', boot)
 } else {

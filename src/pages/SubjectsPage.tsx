@@ -1,16 +1,16 @@
-import { useNavigate } from 'react-router-dom'
 import { Button } from '../components/Button'
 import { Layout } from '../components/Layout'
 import { LoadingSkeleton } from '../components/LoadingSkeleton'
 import { SubjectList } from '../components/SubjectList'
 import { useSubjects } from '../hooks/useSubjects'
+import { useNavigation } from '../navigation/AppNavigation'
 
 export function SubjectsPage() {
-  const navigate = useNavigate()
+  const { goNew } = useNavigation()
   const { subjects, loading } = useSubjects()
 
   return (
-    <Layout title="Мои предметы" subtitle="Калькулятор БРС · ЮУрГУ">
+    <Layout title="Мои предметы" subtitle="Калькулятор БРС · ЮУрГУ · v1.0.2">
       <div className="space-y-5">
         {loading ? (
           <LoadingSkeleton />
@@ -18,7 +18,7 @@ export function SubjectsPage() {
           <SubjectList subjects={subjects} />
         )}
 
-        <Button variant="primary" onClick={() => navigate('/subjects/new')}>
+        <Button variant="primary" onClick={goNew}>
           + Новый предмет
         </Button>
       </div>
