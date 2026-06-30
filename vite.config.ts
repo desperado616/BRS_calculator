@@ -2,7 +2,7 @@ import { defineConfig, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 
-/** Совместимость с WebView Telegram: IIFE, без module/crossorigin, статический script */
+/** Совместимость с WebView Telegram: IIFE, абсолютные пути, без module/crossorigin */
 function telegramCompatPlugin(): Plugin {
   return {
     name: 'telegram-compat',
@@ -10,20 +10,20 @@ function telegramCompatPlugin(): Plugin {
       order: 'post',
       handler(html) {
         const scriptMatch = html.match(
-          /<script[^>]+src="(\.\/assets\/[^"]+\.js)"[^>]*><\/script>/,
+          /<script[^>]+src="(\/?assets\/[^"]+\.js)"[^>]*><\/script>/,
         )
         const cssMatch = html.match(
-          /<link[^>]+href="(\.\/assets\/[^"]+\.css)"[^>]*>/,
+          /<link[^>]+href="(\/?assets\/[^"]+\.css)"[^>]*>/,
         )
 
-        const jsPath = scriptMatch?.[1] ?? './assets/app.js'
-        const cssPath = cssMatch?.[1] ?? './assets/app.css'
+        const jsPath = scriptMatch?.[1]?.replace(/^\.\//, '/') ?? '/assets/app.js'
+        const cssPath = cssMatch?.[1]?.replace(/^\.\//, '/') ?? '/assets/app.css'
 
         let result = html
           .replace(/\s+crossorigin(="[^"]*")?/gi, '')
           .replace(/\stype="module"/g, '')
-          .replace(/<script[^>]+src="\.\/assets\/[^"]+\.js"[^>]*><\/script>\n?/g, '')
-          .replace(/<link[^>]+href="\.\/assets\/[^"]+\.css"[^>]*>\n?/g, '')
+          .replace(/<script[^>]+src="\/?assets\/[^"]+\.js"[^>]*><\/script>\n?/g, '')
+          .replace(/<link[^>]+href="\/?assets\/[^"]+\.css"[^>]*>\n?/g, '')
           .replace(/<script[^>]+src="\/src\/main\.tsx"[^>]*><\/script>\n?/g, '')
 
         result = result.replace(
@@ -32,7 +32,7 @@ function telegramCompatPlugin(): Plugin {
         )
         result = result.replace(
           '</body>',
-          `    <script src="${jsPath}" onerror="window.__brsShowBootError && window.__brsShowBootError('Не удалось загрузить приложение')"></script>\n  </body>`,
+          `    <script src="${jsPath}" onerror="window.__brsShowBootError && window.__brsShowBootError('Не удалось загрузить ' + this.src)"></script>\n  </body>`,
         )
         return result
       },
@@ -42,7 +42,7 @@ function telegramCompatPlugin(): Plugin {
 
 export default defineConfig({
   plugins: [react(), tailwindcss(), telegramCompatPlugin()],
-  base: './',
+  base: '/',
   build: {
     target: 'es2015',
     cssTarget: 'chrome61',

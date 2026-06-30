@@ -11,7 +11,6 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "core-js": "^3.44.0",
     "dexie": "^4.0.11",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"

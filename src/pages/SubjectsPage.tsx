@@ -10,7 +10,7 @@ export function SubjectsPage() {
   const { subjects, loading } = useSubjects()
 
   return (
-    <Layout title="Мои предметы" subtitle="Калькулятор БРС · ЮУрГУ · v1.0.2">
+    <Layout title="Мои предметы" subtitle="Калькулятор БРС · ЮУрГУ · v1.0.3">
       <div className="space-y-5">
         {loading ? (
           <LoadingSkeleton />

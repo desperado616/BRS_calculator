@@ -1,4 +1,3 @@
-import 'core-js/stable'
 import { createRoot } from 'react-dom/client'
 import { App } from './App'
 import { ErrorBoundary } from './components/ErrorBoundary'
@@ -9,12 +8,13 @@ declare global {
   interface Window {
     __brsShowBootError?: (message: string) => void
     __brsAppMounted?: boolean
+    __brsFinishBoot?: () => void
   }
 }
 
 function hideBootStatus() {
   const status = document.getElementById('boot-status')
-  if (status) status.remove()
+  if (status) status.style.display = 'none'
 }
 
 function showBootstrapError(error: unknown) {
@@ -44,9 +44,6 @@ function mountApp() {
   applyThemeToDocument(getInitialTheme())
   hideBootStatus()
 
-  const bootError = document.getElementById('boot-error')
-  if (bootError) bootError.remove()
-
   createRoot(rootElement).render(
     <ErrorBoundary>
       <App />
@@ -54,6 +51,7 @@ function mountApp() {
   )
 
   window.__brsAppMounted = true
+  window.__brsFinishBoot?.()
 }
 
 function boot() {
