@@ -1,3 +1,5 @@
+import { safeStorageGet, safeStorageSet } from './storage'
+
 export const THEME_STORAGE_KEY = 'brs-theme'
 
 export type ThemeMode = 'light' | 'dark'
@@ -9,7 +11,7 @@ const THEME_COLORS: Record<ThemeMode, string> = {
 
 export function getStoredTheme(): ThemeMode | null {
   if (typeof window === 'undefined') return null
-  const saved = localStorage.getItem(THEME_STORAGE_KEY)
+  const saved = safeStorageGet(THEME_STORAGE_KEY)
   if (saved === 'dark' || saved === 'light') return saved
   return null
 }
@@ -37,7 +39,7 @@ export function applyThemeToDocument(theme: ThemeMode, persist = true) {
   document.documentElement.dataset.theme = theme
   updateThemeColorMeta(theme)
   if (persist) {
-    localStorage.setItem(THEME_STORAGE_KEY, theme)
+    safeStorageSet(THEME_STORAGE_KEY, theme)
   }
 }
 

@@ -1,14 +1,29 @@
-import { defineConfig } from 'vite'
+import { defineConfig, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 
+/** WebView Telegram блокирует module/script с crossorigin → белый экран */
+function removeCrossoriginPlugin(): Plugin {
+  return {
+    name: 'remove-crossorigin',
+    transformIndexHtml: {
+      order: 'post',
+      handler(html) {
+        return html.replace(/\s+crossorigin(="[^"]*")?/gi, '')
+      },
+    },
+  }
+}
+
 export default defineConfig({
-  plugins: [react(), tailwindcss()],
+  plugins: [react(), tailwindcss(), removeCrossoriginPlugin()],
   base: './',
   build: {
-    // Telegram WebView на Android может быть старее обычного Chrome
-    target: ['es2018', 'chrome63', 'safari12'],
+    target: 'es2015',
     cssTarget: 'chrome61',
+    modulePreload: {
+      polyfill: false,
+    },
   },
   server: {
     host: true,
