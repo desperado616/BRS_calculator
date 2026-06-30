@@ -247,12 +247,33 @@ subjects: [{
 
 ## Деплой на Vercel
 
-1. Подключите репозиторий к [Vercel](https://vercel.com)
-2. **Build Command:** `npm run build`
-3. **Output Directory:** `dist`
-4. Укажите URL в настройках Telegram Bot → Menu Button / Web App
+Проект уже содержит `vercel.json`, `.nvmrc` (Node 20) и `.npmrc` — **дополнительные настройки в панели Vercel не нужны**.
 
-Файл `vercel.json` настроен для SPA-роутинга. Навигация в приложении — **HashRouter** (`#/`, `#/new`, `#/subject/:id`).
+1. Подключите репозиторий к [Vercel](https://vercel.com)
+2. Убедитесь, что **Framework Preset** = **Other** (или Vite — `vercel.json` переопределит команды)
+3. **Root Directory** — корень репозитория (где `package.json`)
+4. Push в `main` → Vercel соберёт `dist/` автоматически
+5. URL в Telegram Bot → Menu Button / Web App
+
+`vercel.json` задаёт:
+
+| Параметр | Значение |
+| -------- | -------- |
+| Install | `npm ci --include=dev` |
+| Build | `npm run build` |
+| Output | `dist` |
+
+> **Важно:** не задавайте переменную окружения `NODE_ENV=production` в Vercel **до сборки** — без devDependencies не установятся `vite` и `typescript`, и билд упадёт с `'tsc' is not recognized`. Файл `.npmrc` и `installCommand` в проекте это страхуют.
+
+### Если деплой падает
+
+| Ошибка в логе | Решение |
+| ------------- | ------- |
+| `'tsc' / 'vite' is not recognized` | Redeploy после push с актуальным `vercel.json`; проверьте, что `NODE_ENV` не блокирует devDeps |
+| `Could not resolve "./src/main.tsx"` | Убедитесь, что деплоится последний commit (не старый кэш) |
+| Белый экран в Telegram | Свежий deploy + полностью закройте Mini App (см. ниже) |
+
+Навигация в приложении — **hash-роутинг** (`#/`, `#/new`, `#/subject/:id`), rewrites не ломают `/assets/*`.
 
 ---
 

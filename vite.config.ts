@@ -1,6 +1,11 @@
+import { readFileSync } from 'node:fs'
 import { defineConfig, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
+
+const appVersion = JSON.parse(
+  readFileSync(new URL('./package.json', import.meta.url), 'utf-8'),
+).version as string
 
 /** Совместимость с WebView Telegram: IIFE, абсолютные пути, без module/crossorigin */
 function telegramCompatPlugin(): Plugin {
@@ -43,6 +48,9 @@ function telegramCompatPlugin(): Plugin {
 
 export default defineConfig({
   plugins: [react(), tailwindcss(), telegramCompatPlugin()],
+  define: {
+    __APP_VERSION__: JSON.stringify(appVersion),
+  },
   base: '/',
   build: {
     target: 'es2015',
